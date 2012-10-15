@@ -2,12 +2,16 @@
 all: 
 	GOPATH=`pwd` go install invlist
 	GOPATH=`pwd` go install treap
+	GOPATH=`pwd` go install hashlist
+	GOPATH=`pwd` go install svs
 	GOPATH=`pwd` go install buildProgram
-#	GOPATH=`pwd` go install flame
 
 fmt:
 	GOPATH=`pwd` go fmt buildProgram
 	GOPATH=`pwd` go fmt invlist
+	GOPATH=`pwd` go fmt hashlist
+	GOPATH=`pwd` go fmt svs
+	GOPATH=`pwd` go fmt treap
 
 test:
 	GOPATH=`pwd` go test invlist

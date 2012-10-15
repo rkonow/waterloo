@@ -10,9 +10,10 @@
 package treap
 
 import (
+	"math"
 	"math/rand"
 	"time"
-	"math"
+	"fmt"
 )
 
 func init() {
@@ -25,6 +26,8 @@ type Tree struct {
 	overlap OverlapFunc
 	count   int
 	root    *Node
+	max_doc int
+	min_doc int
 }
 
 // LessFunc returns true if a < b
@@ -41,14 +44,16 @@ type Item interface{}
 
 // A Node in the Tree.
 type Node struct {
-	key      Key
-	item     Item
+	key      int
+	item     int
 	priority int
+	delta int
+	deltakey int
 	left     *Node
 	right    *Node
 }
 
-func newNode(key Key, item Item, priority int) *Node {
+func newNode(key int, item int, priority int) *Node {
 	result := new(Node)
 	result.key = key
 	result.item = item
@@ -56,10 +61,27 @@ func newNode(key Key, item Item, priority int) *Node {
 	return result
 }
 
+func (n *Node) GetKey() int {
+	return n.key
+}
+
+func (n *Node) GetPriority() int {
+	return n.priority
+}
+
+func (n *Node) GetLeft() *Node {
+	return n.left
+}
+func (n *Node) GetRight() *Node {
+	return n.right
+}
+
 // To create a Tree, you need to supply a LessFunc that can compare the
 // keys in the Node.
 func NewTree(lessfn LessFunc) *Tree {
 	t := new(Tree)
+	t.max_doc = 0
+	t.min_doc = 1<<31 - 1
 	t.less = lessfn
 	return t
 }
@@ -84,19 +106,128 @@ func (t *Tree) Len() int {
 	return t.count
 }
 
-func (t *Tree) GetRootKey() Key {
+func (t *Tree) GetRootKey() int {
 	return t.root.key
 }
-
+func (t *Tree) GetRootPriority() int {
+	return t.root.priority
+}
 func (t *Tree) GetRoot() *Node {
 	return t.root
 }
+
 // Get an Item in the tree.
-func (t *Tree) Get(key Key) Item {
+func (t *Tree) Get(key int) Item {
 	return t.get(t.root, key)
 }
 
-func (t *Tree) get(node *Node, key Key) Item {
+func (t *Tree) CompressPriority(node *Node) {
+	if node == nil {
+		return
+	}
+	if node == t.root {
+		t.root.delta = t.root.priority
+		if (node.left != nil ) { 
+			node.left.delta = node.left.priority - node.priority	
+		} else if (node.right != nil ) { 
+			node.right.delta = node.right.priority - node.priority
+		}
+	} else {
+		if (node.left != nil ) { 
+			node.left.delta = node.left.priority - node.priority	
+		} else if (node.right != nil ) { 
+			node.right.delta = node.right.priority - node.priority
+		}
+	}
+	t.CompressPriority(node.left)
+	t.CompressPriority(node.right)
+}
+
+func (t *Tree) CompressKeys(node *Node) {
+	if node == nil {
+		return
+	}
+	if node == t.root {
+		t.root.deltakey = t.root.key
+		if (node.left != nil ) { 
+			node.left.deltakey = node.left.key - node.key	
+		} else if (node.right != nil ) { 
+			node.right.deltakey = node.right.key - node.key
+		}
+	} else {
+		if (node.left != nil ) { 
+			node.left.deltakey = node.left.key - node.key	
+		} else if (node.right != nil ) { 
+			node.right.deltakey = node.right.key - node.key
+		}
+	}
+	t.CompressKeys(node.left)
+	t.CompressKeys(node.right)
+}
+
+
+func (t *Tree) PrintPriorities(node *Node,height int) {
+	if node == nil {
+		return
+	}
+	fmt.Println("node:",node.key, " priority = ", node.priority, "height=",height)
+	height+=1
+	t.PrintPriorities(node.left,height)
+	t.PrintPriorities(node.right,height)
+}
+func (t *Tree) PrintDeltas(node *Node,height int,acum []int) {
+	if node == nil {
+		return
+	}
+	//fmt.Println("node:",node.key, " priority = ", node.priority,"delta=",node.delta, "height=",height)
+	acum = append(acum,node.delta)
+	height+=1
+	t.PrintDeltas(node.left,height,acum)
+	t.PrintDeltas(node.right,height,acum)
+}
+func (t *Tree) GetKeyPriorityDelta(node *Node,key int) int {
+	if t.less(key,node.key) {
+		if (node.left != nil) {
+			return t.GetKeyPriorityDelta(node.left,key)
+		}
+	}
+	if t.less(node.key,key) {
+		if (node.right != nil) {
+			return t.GetKeyPriorityDelta(node.right,key)
+		}
+	}
+	return node.delta
+}
+
+func (t *Tree) GetKeyPriority(node *Node,key int) int {
+	if t.less(key,node.key) {
+		if (node.left != nil) {
+			return t.GetKeyPriority(node.left,key)
+		}
+	}
+	if t.less(node.key,key) {
+		if (node.right != nil) {
+			return t.GetKeyPriority(node.right,key)
+		}
+	}
+	return node.priority
+}
+
+func (t *Tree) GetKeyDelta(node *Node,key int) int {
+	if t.less(key,node.key) {
+		if (node.left != nil) {
+			return t.GetKeyDelta(node.left,key)
+		}
+	}
+	if t.less(node.key,key) {
+		if (node.right != nil) {
+			return t.GetKeyDelta(node.right,key)
+		}
+	}
+	return node.deltakey
+}
+
+func (t *Tree) get(node *Node, key int) Item {
 	if node == nil {
 		return nil
 	}
@@ -128,26 +259,32 @@ func (t *Tree) exists(node *Node, key Key) bool {
 }
 
 // Insert an item into the tree.
-func (t *Tree) Insert(key Key, item Item) {
-	priority := rand.Int()
+func (t *Tree) Insert(key int, item int) {
+	if t.max_doc < int(key) {
+		t.max_doc = int(key)
+	}
+	if t.min_doc > int(key) {
+		t.min_doc = int(key)
+	}
+	priority := int(item)
 	t.root = t.insert(t.root, key, item, priority)
 }
 
-func (t *Tree) insert(node *Node, key Key, item Item, priority int) *Node {
+func (t *Tree) insert(node *Node, key int, item int, priority int) *Node {
 	if node == nil {
 		t.count++
 		return newNode(key, item, priority)
 	}
 	if t.less(key, node.key) {
 		node.left = t.insert(node.left, key, item, priority)
-		if node.left.priority < node.priority {
+		if node.left.priority > node.priority {
 			return t.leftRotate(node)
 		}
 		return node
 	}
 	if t.less(node.key, key) {
 		node.right = t.insert(node.right, key, item, priority)
-		if node.right.priority < node.priority {
+		if node.right.priority > node.priority {
 			return t.rightRotate(node)
 		}
 		return node
@@ -175,8 +312,8 @@ func (t *Tree) rightRotate(node *Node) *Node {
 }
 
 // Split the tree by creating a tree with a node of priority -1 so it will be the root
-func (t *Tree) Split(key Key) (*Node, *Node) {
-	inserted := t.insert(t.root, key, nil, -1)
+func (t *Tree) Split(key int) (*Node, *Node) {
+	inserted := t.insert(t.root, key, -1, -1)
 	return inserted.left, inserted.right
 }
 
@@ -234,7 +371,7 @@ func (t *Tree) GetHeightTree(node *Node) int {
 	if node == nil {
 		return 0
 	}
-	return int(1+math.Max(float64(t.GetHeightTree(node.left)),float64(t.GetHeightTree(node.right))))
+	return int(1 + math.Max(float64(t.GetHeightTree(node.left)), float64(t.GetHeightTree(node.right))))
 }
 
 // Returns the height (depth) of the tree.
@@ -344,6 +481,13 @@ func min(h *Node) Item {
 func (t *Tree) Max() Item {
 	return max(t.root)
 }
+func (t *Tree) GetMaxDoc() int {
+	return t.max_doc
+}
+
+func (t *Tree) GetMinDoc() int {
+	return t.min_doc
+}
 
 func max(h *Node) Item {
 	if h == nil {
@@ -353,4 +497,110 @@ func max(h *Node) Item {
 		return h.item
 	}
 	return max(h.right)
+}
+
+func IntLess(p, q interface{}) bool {
+	return p.(int) < q.(int)
+}
+
+type TreapList struct {
+	Treap []*Tree
+}
+
+func (t *Tree) GetCount() int {
+	return t.count
+}
+
+func (s *TreapList) Len() int {
+	return len(s.Treap)
+}
+func (s *TreapList) Less(i, j int) bool {
+	return s.Treap[i].count < s.Treap[j].count
+}
+func (s *TreapList) Swap(i, j int) {
+	s.Treap[i], s.Treap[j] = s.Treap[j], s.Treap[i]
+}
+
+func Intersect(terms *TreapList, y0 int, y1 int, min_freq int) *Tree {
+	new_max := int(math.Min(float64(terms.Treap[0].GetMaxDoc()), float64(terms.Treap[1].GetMaxDoc())))
+	new_min := int(math.Max(float64(terms.Treap[0].GetMinDoc()), float64(terms.Treap[1].GetMinDoc())))
+
+	for i := 2; i < len(terms.Treap); i++ {
+		new_max = int(math.Min(float64(new_max), float64(terms.Treap[i].GetMaxDoc())))
+		new_min = int(math.Max(float64(new_min), float64(terms.Treap[i].GetMinDoc())))
+	}
+
+	if new_min > new_max {
+		return nil
+	}
+
+	res := NewTree(IntLess)
+	IntersectNode(terms.Treap[0].GetRoot(), terms.Treap[1].GetRoot(), terms.Treap[0].GetRoot().GetKey(), y0, y1, 0, min_freq, new_min, new_max, res)
+	for i := 2; i < len(terms.Treap)-2; i++ {
+		if res.GetRoot() == nil {
+			return nil
+		}
+		res_aux := NewTree(IntLess)
+		IntersectNode(res.GetRoot(), terms.Treap[i].GetRoot(), res.GetRoot().GetKey(), y0, y1, 0, min_freq, new_min, new_max, res_aux)
+
+		res = res_aux
+	}
+	return res
+}
+
+func IntersectNode(Node1 *Node, Node2 *Node, key int, y0 int, y1 int, depth int, min_freq int, min_doc int, max_doc int, result *Tree) {
+	if Node1 == nil {
+		return
+	}
+
+	if Node2 == nil {
+		return
+	}
+
+	// if (levelfreq[depth] < min_freq) // if the frequency of the level is not enough
+	// 	return
+
+	if key < min_doc {
+		return
+	}
+
+	if key > max_doc {
+		return
+	}
+
+	if key == Node2.GetKey() { // if we found a result 
+		result.Insert(key, Node1.GetPriority()+Node2.GetPriority()) // insert in the auxilary tree, the sum of the frequencies
+
+		// we have to continue to the next value of the tree
+		if Node1.GetLeft() != nil {
+			if Node1.GetLeft().GetKey() < y1 { // if left is not out of range
+				depth++
+				IntersectNode(Node1.GetLeft(), Node2, Node1.GetLeft().GetKey(), y0, y1, depth, min_freq, min_doc, max_doc, result)
+			}
+		}
+
+		if Node1.GetRight() != nil {
+			if Node1.GetRight().GetKey() > y0 { // if right is not out of range
+				depth++
+				IntersectNode(Node1.GetRight(), Node2, Node1.GetRight().GetKey(), y0, y1, depth, min_freq, min_doc, max_doc, result)
+			}
+		}
+	}
+
+	if Node2.GetLeft() != nil {
+		if key < Node2.GetKey() { // if key is smaller than the key of the other tree
+			if Node2.GetLeft().GetKey() < y1 { // if we are not out of bounds
+				depth++
+				IntersectNode(Node1, Node2.GetLeft(), key, y0, y1, depth, min_freq, min_doc, max_doc, result) // move the node of the other tree
+			}
+		}
+	}
+	if Node2.GetRight() != nil {
+		if key > Node2.GetKey() { // if the key is greater than the key of the other tree
+			if Node2.GetRight().GetKey() > y0 { // if we are not out of bounds
+				depth++
+				IntersectNode(Node1, Node2.GetRight(), key, y0, y1, depth, min_freq, min_doc, max_doc, result) // mode the node of the other tree
+			}
+		}
+	}
 }
