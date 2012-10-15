@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"time"
 	"fmt"
+	"unsafe"
 )
 
 func init() {
@@ -241,11 +242,11 @@ func (t *Tree) get(node *Node, key int) Item {
 }
 
 // Returns true if there is an item in the tree with this key.
-func (t *Tree) Exists(key Key) bool {
+func (t *Tree) Exists(key int) bool {
 	return t.exists(t.root, key)
 }
 
-func (t *Tree) exists(node *Node, key Key) bool {
+func (t *Tree) exists(node *Node, key int) bool {
 	if node == nil {
 		return false
 	}
@@ -257,6 +258,25 @@ func (t *Tree) exists(node *Node, key Key) bool {
 	}
 	return true
 }
+
+
+func (t *Tree) ExistsGet(key int) int {
+	return t.existsget(t.root, key)
+}
+
+func (t *Tree) existsget(node *Node, key int) int {
+	if node == nil {
+		return -1
+	}
+	if t.less(key, node.key) {
+		return t.existsget(node.left, key)
+	}
+	if t.less(node.key, key) {
+		return t.existsget(node.right, key)
+	}
+	return node.priority
+}
+
 
 // Insert an item into the tree.
 func (t *Tree) Insert(key int, item int) {
@@ -339,7 +359,7 @@ func (t *Tree) Merge(left, right *Node) *Node {
 }
 
 // Delete the item from the tree that has this key.
-func (t *Tree) Delete(key Key) {
+func (t *Tree) Delete(key int) {
 	if t.Exists(key) == false {
 		return
 	}
@@ -521,86 +541,133 @@ func (s *TreapList) Swap(i, j int) {
 	s.Treap[i], s.Treap[j] = s.Treap[j], s.Treap[i]
 }
 
-func Intersect(terms *TreapList, y0 int, y1 int, min_freq int) *Tree {
-	new_max := int(math.Min(float64(terms.Treap[0].GetMaxDoc()), float64(terms.Treap[1].GetMaxDoc())))
-	new_min := int(math.Max(float64(terms.Treap[0].GetMinDoc()), float64(terms.Treap[1].GetMinDoc())))
 
-	for i := 2; i < len(terms.Treap); i++ {
-		new_max = int(math.Min(float64(new_max), float64(terms.Treap[i].GetMaxDoc())))
-		new_min = int(math.Max(float64(new_min), float64(terms.Treap[i].GetMinDoc())))
-	}
 
-	if new_min > new_max {
-		return nil
-	}
 
-	res := NewTree(IntLess)
-	IntersectNode(terms.Treap[0].GetRoot(), terms.Treap[1].GetRoot(), terms.Treap[0].GetRoot().GetKey(), y0, y1, 0, min_freq, new_min, new_max, res)
-	for i := 2; i < len(terms.Treap)-2; i++ {
-		if res.GetRoot() == nil {
-			return nil
-		}
-		res_aux := NewTree(IntLess)
-		IntersectNode(res.GetRoot(), terms.Treap[i].GetRoot(), res.GetRoot().GetKey(), y0, y1, 0, min_freq, new_min, new_max, res_aux)
-
-		res = res_aux
-	}
-	return res
+type Trace struct {
+	pointers []uintptr
+	values []int
 }
 
-func IntersectNode(Node1 *Node, Node2 *Node, key int, y0 int, y1 int, depth int, min_freq int, min_doc int, max_doc int, result *Tree) {
+func NewTrace() *Trace {
+	t := new(Trace)
+	t.pointers = make([]uintptr,0)
+	t.values = make([]int,0)
+	return t
+}
+
+func (tr *Trace) Add(n *Node){
+	tr.pointers = append(tr.pointers,uintptr(unsafe.Pointer(n)))
+	tr.values = append(tr.values,n.key)
+}
+
+func (tr *Trace) SearchBetween(key int) int {
+	for i:=len(tr.values)-1;i>0;i-- {
+		if (key <= tr.values[i] && key >= tr.values[i-1]) {
+			return i-1
+		}
+	}
+	return -1
+}
+
+func (tr *Trace) Delete(pos int) {
+	tr.pointers = tr.pointers[0:pos+1]
+	tr.values = tr.values[0:pos+1]
+}
+
+func IntersectNode(Node1 *Node, Node2 *Node, key int,result *Tree,trace *Trace) {
 	if Node1 == nil {
 		return
 	}
-
 	if Node2 == nil {
 		return
 	}
+	trace.Add(Node2)
+	fmt.Println(Node2.key)
+	if (Node1.key == Node2.key) {
+		result.Insert(key,Node2.priority + Node1.priority)
+		next := Node1.GetLeft()	
+		if (next != nil) {
+			IntersectNode(next,Node2,next.key,result,trace)
+		}
+		next = Node1.GetRight() 
+		if (next != nil) {
+			IntersectNode(next,Node2,next.key,result,trace)	
+		}
+	}
+	
+	if (Node1.key <= Node2.key) {
+		next := Node2.GetLeft()
+		IntersectNode(Node1,next,Node1.key,result,trace)	
+	}
+	if (Node1.key >= Node2.key) {
+		next := Node2.GetRight() 
+		IntersectNode(Node1,next,Node1.key,result,trace)	
+	}
 
-	// if (levelfreq[depth] < min_freq) // if the frequency of the level is not enough
-	// 	return
+	// if Tree2.Exists(key) {
+	// 	result.Insert(key,Node1.priority)
+	// } 
 
-	if key < min_doc {
+	// if (Node1.GetLeft() != nil)  {
+	// 	IntersectNode(Node1.GetLeft(),Tree2,Node1.GetLeft().key,y0,y1,depth,min_freq,min_doc,max_doc,result)
+	// }
+	// if (Node1.GetRight() != nil) {
+	// 	IntersectNode(Node1.GetRight(),Tree2,Node1.GetRight().key,y0,y1,depth,min_freq,min_doc,max_doc,result)
+	// }
+}
+
+
+func IntersectNodeNaive(Node1 *Node, Tree2 *Tree,result *Tree,min_freq int,min_doc int,max_doc int) {
+	if Node1 == nil {
 		return
 	}
-
-	if key > max_doc {
+	if (Node1.priority < min_freq) {
+	//	result.Delete(Node1.key)
 		return
 	}
-
-	if key == Node2.GetKey() { // if we found a result 
-		result.Insert(key, Node1.GetPriority()+Node2.GetPriority()) // insert in the auxilary tree, the sum of the frequencies
-
-		// we have to continue to the next value of the tree
-		if Node1.GetLeft() != nil {
-			if Node1.GetLeft().GetKey() < y1 { // if left is not out of range
-				depth++
-				IntersectNode(Node1.GetLeft(), Node2, Node1.GetLeft().GetKey(), y0, y1, depth, min_freq, min_doc, max_doc, result)
-			}
-		}
-
-		if Node1.GetRight() != nil {
-			if Node1.GetRight().GetKey() > y0 { // if right is not out of range
-				depth++
-				IntersectNode(Node1.GetRight(), Node2, Node1.GetRight().GetKey(), y0, y1, depth, min_freq, min_doc, max_doc, result)
-			}
-		}
+	if (Node1.key > max_doc) {
+		return
 	}
+	if (Node1.key < min_doc) {
+		return
+	}
+	Tree2Priority := Tree2.ExistsGet(Node1.key)
+	
+	if Tree2Priority > min_freq {
+		result.Insert(Node1.key,Node1.priority+Tree2Priority)
+	} 
+	if (Node1.GetLeft() != nil)  {
+		IntersectNodeNaive(Node1.GetLeft(),Tree2,result,min_freq,min_doc,max_doc)
+	}
+	if (Node1.GetRight() != nil) {
+		IntersectNodeNaive(Node1.GetRight(),Tree2,result,min_freq,min_doc,max_doc)
+	}
+}
 
-	if Node2.GetLeft() != nil {
-		if key < Node2.GetKey() { // if key is smaller than the key of the other tree
-			if Node2.GetLeft().GetKey() < y1 { // if we are not out of bounds
-				depth++
-				IntersectNode(Node1, Node2.GetLeft(), key, y0, y1, depth, min_freq, min_doc, max_doc, result) // move the node of the other tree
-			}
-		}
+func Intersect(terms *TreapList, y0 int, y1 int, min_freq int) *Tree {
+	 new_max := int(math.Min(float64(terms.Treap[0].GetMaxDoc()), float64(terms.Treap[1].GetMaxDoc())))
+	 new_min := int(math.Max(float64(terms.Treap[0].GetMinDoc()), float64(terms.Treap[1].GetMinDoc())))
+
+	 for i := 2; i < len(terms.Treap); i++ {
+	 	new_max = int(math.Min(float64(new_max), float64(terms.Treap[i].GetMaxDoc())))
+	 	new_min = int(math.Max(float64(new_min), float64(terms.Treap[i].GetMinDoc())))
+	 }
+
+	 if new_min > new_max {
+	 	return nil
+	 }
+
+	res := NewTree(IntLess)
+	//trace := make([]uintptr,0)
+	IntersectNodeNaive(terms.Treap[0].GetRoot(),terms.Treap[1],res,min_freq,new_min ,new_max )
+	 for i := 2; i < len(terms.Treap)-2; i++ {
+	 	if res.GetRoot() == nil {
+	 		return nil
+	 	}
+	 	res_aux := NewTree(IntLess)
+	 	IntersectNodeNaive(res.GetRoot(), terms.Treap[i], res_aux,min_freq, new_min, new_max)
+	 	res = res_aux
 	}
-	if Node2.GetRight() != nil {
-		if key > Node2.GetKey() { // if the key is greater than the key of the other tree
-			if Node2.GetRight().GetKey() > y0 { // if we are not out of bounds
-				depth++
-				IntersectNode(Node1, Node2.GetRight(), key, y0, y1, depth, min_freq, min_doc, max_doc, result) // mode the node of the other tree
-			}
-		}
-	}
+	return res
 }

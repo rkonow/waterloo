@@ -5,11 +5,11 @@ import (
 	"hashlist"
 	"invlist"
 	"math"
-	//"math/rand"
+	"math/rand"
 	"os"
 	"sort"
 	"svs"
-	//"time"
+	"time"
 	"treap"
 
 	//	"flame"
@@ -43,7 +43,7 @@ func main() {
 
 	//t := invClustering.LoadFiles(args[1])
 	//t.Write("test_large.invlist")
-	t := invClustering.Load("test.invlist.serial")
+	t := invClustering.Load("test_large.invlist.serial")
 	tr := make([]*treap.Tree, 0)
 	hs := make([]*hashlist.InvertedHash, 0)
 	ss := make([]*svs.InvertedSet, 0)
@@ -66,7 +66,7 @@ func main() {
 
 		//fmt.Println("Adding term:",i)
 		size := len(t.Postings[i].Content)
-		if size > 10 {
+		if size > 10   {
 			tr = append(tr, treap.NewTree(IntLess))
 			hs = append(hs, hashlist.NewInvertedHash())
 			ss = append(ss, svs.NewInvertedSet())
@@ -74,14 +74,16 @@ func main() {
 				tr[term].Insert(k, t.Postings[i].Content[k])
 				hs[term].AddDocument(k, t.Postings[i].Content[k])
 				ss[term].AddDocument(k, t.Postings[i].Content[k])
-			// for k := 0; k < 10000; k++ {
-			// 	randnum := rand.Intn(50000)
-			// 	randfreq := rand.Intn(10)
+
+			}
+
+			// for k := 0; k < 1000; k++ {
+			// 	randnum := rand.Intn(5000)
+			// 	randfreq := rand.Intn(100)
 			// 	tr[term].Insert(randnum, randfreq)
 			// 	hs[term].AddDocument(randnum, randfreq)
 			// 	ss[term].AddDocument(randnum, randfreq)
 			// }
-			}
 			sort.Sort(ss[term])
 			balanced := math.Ceil((math.Log2(float64(len(t.Postings[i].Content)))))
 			height := tr[term].GetHeightTree(tr[term].GetRoot())
@@ -142,115 +144,127 @@ func main() {
 		}
 
 	}
-	fmt.Println("AVG HEIGHT:",float64(total_balanced)/float64(count),"\t AVG TREAP:",float64(float64(total_height)/float64(count)))
-	fmt.Println("AVG LEN: ",float64(total_len)/float64(count))
+	// fmt.Println("AVG HEIGHT:",float64(total_balanced)/float64(count),"\t AVG TREAP:",float64(float64(total_height)/float64(count)))
+	// fmt.Println("AVG LEN: ",float64(total_len)/float64(count))
 
-	fmt.Println("f_stupid ", size_freq_stupid)
-	fmt.Println("f_real ", total_len_f_real)
-	fmt.Println("f_delta ", total_len_f_delta)
-	fmt.Println("f_delta_no_zero ", total_len_f_delta_nozero)
+	// fmt.Println("f_stupid ", size_freq_stupid)
+	// fmt.Println("f_real ", total_len_f_real)
+	// fmt.Println("f_delta ", total_len_f_delta)
+	// fmt.Println("f_delta_no_zero ", total_len_f_delta_nozero)
 
 
-	fmt.Println("k_real ", total_len_k_real)
-	fmt.Println("k_delta ", total_len_k_delta)
+	// fmt.Println("k_real ", total_len_k_real)
+	// fmt.Println("k_delta ", total_len_k_delta)
 	
 
-	fmt.Println("AVG f_stupid ", float64(size_freq_stupid)/float64(count2))
-	fmt.Println("AVG f_real ", float64(total_len_f_real)/float64(count2))
-	fmt.Println("AVG f_delta ", float64(total_len_f_delta)/float64(count2))
-	fmt.Println("AVG f_delta_no_zero ", float64(total_len_f_delta_nozero)/float64(count2))
+	// fmt.Println("AVG f_stupid ", float64(size_freq_stupid)/float64(count2))
+	// fmt.Println("AVG f_real ", float64(total_len_f_real)/float64(count2))
+	// fmt.Println("AVG f_delta ", float64(total_len_f_delta)/float64(count2))
+	// fmt.Println("AVG f_delta_no_zero ", float64(total_len_f_delta_nozero)/float64(count2))
 
 
-	fmt.Println("AVG k_real ", float64(total_len_k_real)/float64(count2))
-	fmt.Println("AVG k_delta ", float64(total_len_k_delta)/float64(count2))
+	// fmt.Println("AVG k_real ", float64(total_len_k_real)/float64(count2))
+	// fmt.Println("AVG k_delta ", float64(total_len_k_delta)/float64(count2))
 
-	fmt.Println("AVG f_stupid/term ", float64(size_freq_stupid)/float64(count))
-	fmt.Println("AVG f_real/term ", float64(total_len_f_real)/float64(count))
-	fmt.Println("AVG f_delta/term ", float64(total_len_f_delta)/float64(count))
-	fmt.Println("AVG f_delta_no_zero/term ", float64(total_len_f_delta_nozero)/float64(count))
-
-
-	fmt.Println("AVG k_real/term", float64(total_len_k_real)/float64(count))
-	fmt.Println("AVG k_delta/term ", float64(total_len_k_delta)/float64(count))
+	// fmt.Println("AVG f_stupid/term ", float64(size_freq_stupid)/float64(count))
+	// fmt.Println("AVG f_real/term ", float64(total_len_f_real)/float64(count))
+	// fmt.Println("AVG f_delta/term ", float64(total_len_f_delta)/float64(count))
+	// fmt.Println("AVG f_delta_no_zero/term ", float64(total_len_f_delta_nozero)/float64(count))
 
 
-	fmt.Println("Naive keys/term", count2*32/count)
-	fmt.Println("Naive Freqs/term", count2*32/count)	
-	fmt.Println("Naive sum/term", count2*32*2/count)	
+	// fmt.Println("AVG k_real/term", float64(total_len_k_real)/float64(count))
+	// fmt.Println("AVG k_delta/term ", float64(total_len_k_delta)/float64(count))
 
-	// for k := 2; k < 10; k++ {
-	// 	hashtime := float64(0)
-	// 	svstime := float64(0)
-	// 	treaptime := float64(0)
+
+	// fmt.Println("Naive keys/term", count2*32/count)
+	// fmt.Println("Naive Freqs/term", count2*32/count)	
+	// fmt.Println("Naive sum/term", count2*32*2/count)	
+
+	for k := 2; k < 10; k++ {
+		hashtime := float64(0)
+		svstime := float64(0)
+		treaptime := float64(0)
 		
-	// 	for j := 0; j < 100; j++ {
-	// 		termquerySet := new(svs.SetList)
-	// 		termquerySet.Sets = make([]*svs.InvertedSet, 0)
+		for j := 0; j < 100000; j++ {
+			termquerySet := new(svs.SetList)
+			termquerySet.Sets = make([]*svs.InvertedSet, 0)
 
-	// 		termquerytreap := new(treap.TreapList)
-	// 		termquerytreap.Treap = make([]*treap.Tree, 0)
+			termquerytreap := new(treap.TreapList)
+			termquerytreap.Treap = make([]*treap.Tree, 0)
 
-	// 		termqueryHash := new(hashlist.InvertedHashList)
-	// 		termqueryHash.Hashings = make([]*hashlist.InvertedHash, 0)
-	// 		for i := 0; i < k; i++ {
-	// 			randnumber := rand.Intn(len(hs) - 1)
+			termqueryHash := new(hashlist.InvertedHashList)
+			termqueryHash.Hashings = make([]*hashlist.InvertedHash, 0)
+			for i := 0; i < k; i++ {
+				randnumber := rand.Intn(len(hs) - 1)
 
-	// 			// testcopy[i] = *ss[randnumber]
+				termqueryHash.Hashings = append(termqueryHash.Hashings, hs[randnumber])
 
-	// 			termqueryHash.Hashings = append(termqueryHash.Hashings, hs[randnumber])
+				termquerySet.Sets = append(termquerySet.Sets, ss[randnumber])
 
-	// 			termquerySet.Sets = append(termquerySet.Sets, ss[randnumber])
+				termquerytreap.Treap = append(termquerytreap.Treap, tr[randnumber])
+			}
 
-	// 			termquerytreap.Treap = append(termquerytreap.Treap, tr[randnumber])
-	// 		}
+			sort.Sort(termqueryHash)
+			sort.Sort(termquerytreap)
+			sort.Sort(termquerySet)
+			min_freq := 2
+			t_treap := time.Now()
+			// r_treap := treap.Intersect(termquerytreap, 0, 1000000000, min_freq)
+			treap.Intersect(termquerytreap, 0, 1000000000, min_freq)
+			t_treap2 := time.Now()
+			t_treap_f := float64(t_treap2.Sub(t_treap).Seconds())
+			treaptime += t_treap_f
 
-	// 		sort.Sort(termqueryHash)
-	// 		sort.Sort(termquerytreap)
-	// 		sort.Sort(termquerySet)
+			t0 := time.Now()
+			// r_hash := hashlist.Intersect(termqueryHash, 0, 1000000000, min_freq)
+			hashlist.Intersect(termqueryHash, 0, 1000000000, min_freq)
+			t1 := time.Now()
+			t_hash := float64(t1.Sub(t0).Seconds())
+			hashtime += t_hash
 
-	// 		t_treap := time.Now()
-	// 		treap.Intersect(termquerytreap, 0, 1000000000, 0)
-	// 		t_treap2 := time.Now()
-	// 		t_treap_f := float64(t_treap2.Sub(t_treap).Seconds())
-	// 		treaptime += t_treap_f
+			testcopy := make([]svs.InvertedSet, k)
+			for i := 0; i < k; i++ {
+				testcopy[i] = *termquerySet.Sets[i]
+			}
 
-	// 		t0 := time.Now()
-	// 		hashlist.Intersect(termqueryHash, 0, 1000000000, 0)
-	// 		t1 := time.Now()
-	// 		t_hash := float64(t1.Sub(t0).Seconds())
-	// 		hashtime += t_hash
+			result := make(map[int]int, len(testcopy[0].Content))
+			for i := 0; i < len(testcopy[0].Content); i++ {
+				result[testcopy[0].Content[i]] = testcopy[0].Frequencies[i]
+			}
+			t_svs_partial, _ := svs.Intersect(testcopy, 0, 1000000000, min_freq, result)
 
-	// 		testcopy := make([]svs.InvertedSet, k)
-	// 		for i := 0; i < k; i++ {
-	// 			testcopy[i] = *termquerySet.Sets[i]
-	// 		}
+			//t_svs := float64(t3.Sub(t2).Seconds())
+			svstime += t_svs_partial
+			//fmt.Println("Result =",len(t.Content))
+			//fmt.Println("Result2 =",len(t2.Content))
+			// if (r != nil) {
+			// if len(r_hash.Content) != len(test) {
+			// 	fmt.Println("j = ", j)
+			// 	fmt.Println(r_hash.Content)
+			// 	fmt.Println("--------")
+			// 	fmt.Println(test)
+			// 	// 		// hashtime -= t_hash
+			// 	// 		// svstime -= t_svs
+			// 	// 		// treaptime -= t_treap_f
+			// }
+			//}
+			// count_treap := 0
+			// if (r_treap != nil ) {
+			// 	count_treap = r_treap.GetCount()
+			// }
+			// count_hash := 0
+			// if (r_hash != nil) {
+			// 	count_hash = len(r_hash.Content)
+			// }
+			// fmt.Println("treap size:",count_treap)
+			// fmt.Println("hash size:",count_hash)
+		}
 
-	// 		result := make(map[int]int, len(testcopy[0].Content))
-	// 		for i := 0; i < len(testcopy[0].Content); i++ {
-	// 			result[testcopy[0].Content[i]] = testcopy[0].Frequencies[i]
-	// 		}
-	// 		t_svs_partial, _ := svs.Intersect(testcopy, 0, 1000000000, 0, result)
-
-	// 		//t_svs := float64(t3.Sub(t2).Seconds())
-	// 		svstime += t_svs_partial
-	// 		//fmt.Println("Result =",len(t.Content))
-	// 		//fmt.Println("Result2 =",len(t2.Content))
-	// 		// if (r != nil) {
-	// 		// if len(r_hash.Content) != len(test) {
-	// 		// 	fmt.Println("j = ", j)
-	// 		// 	fmt.Println(r_hash.Content)
-	// 		// 	fmt.Println("--------")
-	// 		// 	fmt.Println(test)
-	// 		// 	// 		// hashtime -= t_hash
-	// 		// 	// 		// svstime -= t_svs
-	// 		// 	// 		// treaptime -= t_treap_f
-	// 		// }
-	// 		//}
-	// 	}
-	// 	fmt.Println(k," hash time:", hashtime)
-	// 	fmt.Println(k," svs time:", svstime)
-	// 	fmt.Println(k," treap time:", treaptime)
-	// }
+		fmt.Println(k,hashtime,svstime,treaptime)
+		// fmt.Println(k," hash time:", hashtime)
+		// fmt.Println(k," svs time:", svstime)
+		// fmt.Println(k," treap time:", treaptime)
+	}
 	
 
 	// fmt.Println("N = ", len(t.DocPost))
