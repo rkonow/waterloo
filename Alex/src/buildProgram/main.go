@@ -43,7 +43,7 @@ func main() {
 
 	//t := invClustering.LoadFiles(args[1])
 	//t.Write("test_large.invlist")
-	t := invClustering.Load("test.invlist.serial")
+	t := invClustering.Load("test_large.invlist.serial")
 	tr := make([]*treap.Tree, 0)
 	hs := make([]*hashlist.InvertedHash, 0)
 	ss := make([]*svs.InvertedSet, 0)
