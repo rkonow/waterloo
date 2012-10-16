@@ -211,3 +211,48 @@ func Intersect(terms []InvertedSet, y0 int, y1 int, freq int, result map[int]int
 	t_final := float64(t1.Sub(t0).Seconds())
 	return t_final, result
 }
+
+
+
+
+type InvertedSetFreq struct {
+	max_docid   int
+	min_docid   int
+	Content     []int
+	Frequencies []int
+}
+
+// Methods required by sort.Interface.
+func (h *InvertedSetFreq) Len() int {
+	return len(h.Content)
+}
+func (h *InvertedSetFreq) Less(i, j int) bool {
+	return h.Frequencies[i] < h.Frequencies[j]
+}
+func (h *InvertedSetFreq) Swap(i, j int) {
+	h.Content[i], h.Content[j] = h.Content[j], h.Content[i]
+	h.Frequencies[i], h.Frequencies[j] = h.Frequencies[j], h.Frequencies[i]
+}
+
+func (h *InvertedSetFreq) AddDocument(doc int, freq int) {
+	h.Content = append(h.Content, doc)
+	h.Frequencies = append(h.Frequencies, freq)
+	// fmt.Println("doc is",doc)
+	// fmt.Println("doc added:",h.Content[len(h.Content)-1])
+	if h.max_docid < doc {
+		h.max_docid = doc
+	}
+	if h.min_docid > doc {
+		h.min_docid = doc
+	}
+}
+
+func NewInvertedSetFreq() *InvertedSetFreq {
+	result := new(InvertedSetFreq)
+	result.max_docid = 0
+	result.min_docid = 1<<31 - 1
+	result.Content = make([]int, 0)
+	result.Frequencies = make([]int, 0)
+	return result
+}
+

@@ -126,6 +126,8 @@ func (t *Tree) CompressPriority(node *Node) {
 	if node == nil {
 		return
 	}
+	t.CompressPriority(node.left)
+
 	if node == t.root {
 		t.root.delta = t.root.priority
 		if (node.left != nil ) { 
@@ -140,7 +142,7 @@ func (t *Tree) CompressPriority(node *Node) {
 			node.right.delta = node.right.priority - node.priority
 		}
 	}
-	t.CompressPriority(node.left)
+
 	t.CompressPriority(node.right)
 }
 

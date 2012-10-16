@@ -43,10 +43,11 @@ func main() {
 
 	//t := invClustering.LoadFiles(args[1])
 	//t.Write("test_large.invlist")
-	t := invClustering.Load("test_large.invlist.serial")
+	t := invClustering.Load("test.invlist.serial")
 	tr := make([]*treap.Tree, 0)
 	hs := make([]*hashlist.InvertedHash, 0)
 	ss := make([]*svs.InvertedSet, 0)
+	sf := make([]*svs.InvertedSetFreq,0)
 	term := 0
 	count := 0
 	total_height := float64(0)
@@ -63,18 +64,18 @@ func main() {
 
 
 	for i := range t.Postings {
-
 		//fmt.Println("Adding term:",i)
 		size := len(t.Postings[i].Content)
 		if size > 10   {
 			tr = append(tr, treap.NewTree(IntLess))
 			hs = append(hs, hashlist.NewInvertedHash())
 			ss = append(ss, svs.NewInvertedSet())
+			sf = append(sf,svs.NewInvertedSetFreq())
 			for k := range t.Postings[i].Content {
 				tr[term].Insert(k, t.Postings[i].Content[k])
 				hs[term].AddDocument(k, t.Postings[i].Content[k])
 				ss[term].AddDocument(k, t.Postings[i].Content[k])
-
+				sf[term].AddDocument(k, t.Postings[i].Content[k])
 			}
 
 			// for k := 0; k < 1000; k++ {
@@ -85,6 +86,8 @@ func main() {
 			// 	ss[term].AddDocument(randnum, randfreq)
 			// }
 			sort.Sort(ss[term])
+			sort.Sort(sf[term])
+
 			balanced := math.Ceil((math.Log2(float64(len(t.Postings[i].Content)))))
 			height := tr[term].GetHeightTree(tr[term].GetRoot())
 			total_height += float64(height)
@@ -123,32 +126,59 @@ func main() {
 				size_freq_stupid += 32
 				size_freq_real += int(math.Ceil((math.Log2(math.Abs(float64(f_real))+2))))
 				size_freq_delta += int(math.Ceil(math.Log2(math.Abs(float64(f_delta))+2)))
-				//fmt.Println(f_delta)
+				// fmt.Println(f_delta)
 				if f_delta != 0 {
-					//fmt.Println(f_delta)
-					total_len_f_delta_nozero += float64(int(math.Ceil(math.Log2(math.Abs(float64(f_delta))+1))))
+					// fmt.Println(f_delta)
+					total_len_f_delta_nozero += float64(int(math.Ceil(math.Log2(math.Abs(float64(f_delta))+2))))
 				}
 				//fmt.Println(int(math.Ceil(math.Log2(math.Abs(float64(f_delta))+1))))
-				size_key_real += int(math.Ceil(math.Log2(math.Abs(float64(k_real))+2)))
-				size_key_delta += int(math.Ceil(math.Log2(math.Abs(float64(k_delta))+2)))
+				size_key_real += int(math.Ceil(math.Log2(math.Abs(float64(k_real))+1)))
+				size_key_delta += int(math.Ceil(math.Log2(math.Abs(float64(k_delta))+1)))
 				count2++
 			}
 
 			total_len_f_real += float64(size_freq_real)
 			total_len_f_delta += float64(size_freq_delta)
-			total_len_k_real += float64(size_key_real)
-			total_len_k_delta += float64(size_key_delta)
+			total_len_k_real += float64(size_key_real)+32
+			total_len_k_delta += float64(size_key_delta)+32
 			count++
 			term++
 			
 		}
 
 	}
+
+	// sorted_ids := make([]int,0)
+	size_sorted_id := float64(0)
+	size_sorted_freq := float64(0)
+	for t := range ss {
+		for i:= 1;i<len(ss[t].Content);i++ {
+			// sorted_ids = append(sorted_ids,ss[t].Content[i]-ss[t].Content[i-1])
+			size_sorted_id += math.Ceil(math.Log2(math.Abs(float64(ss[t].Content[i]-ss[t].Content[i-1])+1)))
+		}
+	}
+
+	size_sorted_no_zero := float64(0)
+	for t := range ss {
+		for i:= 1;i<len(sf[t].Content);i++ {
+			// fmt.Println(sf[t].Frequencies[i])
+			if (sf[t].Frequencies[i]-sf[t].Frequencies[i-1] != 0) {
+				size_sorted_no_zero += math.Ceil(math.Log2(math.Abs(float64(sf[t].Frequencies[i]-sf[t].Frequencies[i-1])+2)))
+			}
+			size_sorted_freq += math.Ceil(math.Log2(math.Abs(float64(sf[t].Frequencies[i]-sf[t].Frequencies[i-1])+2)))
+		}
+	}
+	
 	// fmt.Println("AVG HEIGHT:",float64(total_balanced)/float64(count),"\t AVG TREAP:",float64(float64(total_height)/float64(count)))
 	// fmt.Println("AVG LEN: ",float64(total_len)/float64(count))
 	fmt.Println("f_stupid,f_real,f_delta,f_delta_no_zero,k_real,k_delta,count2,count,height,htreap,len")
-	fmt.Println(size_freq_stupid/8,total_len_f_real/8,total_len_f_delta/8,total_len_f_delta_nozero/8,total_len_k_real/8,total_len_k_delta/8,count2,count,total_balanced/float64(count),total_height/float64(count),total_len/float64(count))
-	//fmt.Println("f_stupid ", size_freq_stupid)
+	count3 := float64(count)
+	fmt.Println(size_freq_stupid/count,total_len_f_real/count3,total_len_f_delta/count3,total_len_f_delta_nozero/count3,total_len_k_real/count3,total_len_k_delta/count3,count2,count,total_balanced/float64(count),total_height/float64(count),total_len/float64(count))
+	
+	fmt.Println("sorted_ids,sorted_freq,sorted_no_zero")
+	fmt.Println(size_sorted_id/float64(count),size_sorted_freq/float64(count),size_sorted_no_zero/float64(count))
+
+	// fmt.Println("f_stupid ", size_freq_stupid)
 	// fmt.Println("f_real ", total_len_f_real)
 	// fmt.Println("f_delta ", total_len_f_delta)
 	// fmt.Println("f_delta_no_zero ", total_len_f_delta_nozero)
@@ -157,7 +187,7 @@ func main() {
 	// fmt.Println("k_real ", total_len_k_real)
 	// fmt.Println("k_delta ", total_len_k_delta)
 	
-
+	// fmt.Println(size_sorted_id)
 	// fmt.Println("AVG f_stupid ", float64(size_freq_stupid)/float64(count2))
 	// fmt.Println("AVG f_real ", float64(total_len_f_real)/float64(count2))
 	// fmt.Println("AVG f_delta ", float64(total_len_f_delta)/float64(count2))
