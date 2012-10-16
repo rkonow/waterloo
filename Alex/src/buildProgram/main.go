@@ -146,8 +146,9 @@ func main() {
 	}
 	// fmt.Println("AVG HEIGHT:",float64(total_balanced)/float64(count),"\t AVG TREAP:",float64(float64(total_height)/float64(count)))
 	// fmt.Println("AVG LEN: ",float64(total_len)/float64(count))
-
-	// fmt.Println("f_stupid ", size_freq_stupid)
+	fmt.Println("f_stupid,f_real,f_delta,f_delta_no_zero,k_real,k_delta,count2,count,height,htreap,len")
+	fmt.Println(size_freq_stupid/8,total_len_f_real/8,total_len_f_delta/8,total_len_f_delta_nozero/8,total_len_k_real/8,total_len_k_delta/8,count2,count,total_balanced/float64(count),total_height/float64(count),total_len/float64(count))
+	//fmt.Println("f_stupid ", size_freq_stupid)
 	// fmt.Println("f_real ", total_len_f_real)
 	// fmt.Println("f_delta ", total_len_f_delta)
 	// fmt.Println("f_delta_no_zero ", total_len_f_delta_nozero)
