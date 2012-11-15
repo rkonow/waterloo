@@ -5,7 +5,7 @@ import (
 //	"hashlist"
 	"invlist"
 	"math"
-//	"math/rand"
+	"math/rand"
 	"os"
 //	"sort"
 //	"svs"
@@ -16,9 +16,9 @@ import (
 	//	"unsafe"
 	//	"reflect"
 	//"time"
-	"io/ioutil"
+	//"io/ioutil"
 	//"math"
-	"strings"
+	//"strings"
 
 //"math/rand"
 
@@ -183,51 +183,52 @@ func main() {
 		// c := invClustering.GenerateClusters(t, l)
 		// tc := invClustering.GenerateTermClusters(c)
 
-		sol_cluster3 := make([]int, 0)
-		sol_cluster4 := make([]int, 0)
-		sol_invlist := make([]int, 0)
+		// sol_cluster3 := make([]int, 0)
+		// sol_cluster4 := make([]int, 0)
+		// sol_invlist := make([]int, 0)
 		//ratio_list := make([]float64,0)
 		nc_list := make([]float64,0)
 		n1_list := make([]float64,0)
-		for i := 2; i <= 2; i++ {
-			s := fmt.Sprintf("queries.%d", i)
-			fmt.Println("Executing with queries -> ",s)
-			data, _ := ioutil.ReadFile(s)
-			//fmt.Println(s)
-			d := strings.Split(string(data), "\n")
+		threshold := 10;	
+		for k := 0 ; k < 1000 ; k++ {
+			query := make([]string,0)
+			cont := 0
+			for cont < 2 { 
+				p := rand.Intn(len(t.TermMap) - 1)
+				if t.Dictionary[t.TermMap[p]] >= threshold {
+					query = append(query,t.TermMap[p])
+					cont++
+				}
+			}
+
 			// sum_cluster1 := 0
 			// sum_cluster2 := 0
 			amount_clusters := 0
 			amount_items := 0
-			sum_cluster3 := 0
-			sum_cluster4 := 0
-			sum_invlist := 0
-			for dd := range d {
-//				strings.Trim(d[dd], " ")
-				q := strings.Split(d[dd], " ")
-			//	q = strings.Split(q[0]," ")
-				if len(q) >= 2 {
+			// sum_cluster3 := 0
+			// sum_cluster4 := 0
+			// sum_invlist := 0
+			
 //					fmt.Println("entered with q = ",q)
-					n2, s2 := termCluster.TopKQuery(q, 10, 1)
-					nC := math.Min(float64(termCluster.GetDocsFromTerm(q[0])),float64(termCluster.GetDocsFromTerm(q[1])))			
-					sum_cluster3 += n2
-					sum_cluster4 += s2
-					amount_clusters += n2;
-					amount_items += s2
-					size := t.TopKQuery(q, 10)
-					n1 := math.Min(float64(t.GetDocsFromTerm(q[0])),float64(t.GetDocsFromTerm(q[1])))			
-					n1_list = append(n1_list,n1)
-					nc_list = append(nc_list,nC)
-					sum_invlist += size				
-				}
+			n2, s2 := termCluster.TopKQuery(query, 10, 1)
+			nC := math.Min(float64(termCluster.GetDocsFromTerm(query[0])),float64(termCluster.GetDocsFromTerm(query[1])))			
+			// sum_cluster3 += n2
+			// sum_cluster4 += s2
+			amount_clusters += n2;
+			amount_items += s2
+			t.TopKQuery(query, 10)
+			n1 := math.Min(float64(t.GetDocsFromTerm(query[0])),float64(t.GetDocsFromTerm(query[1])))			
+			n1_list = append(n1_list,n1)
+			nc_list = append(nc_list,nC)
+		//	sum_invlist += size				
 			}
-			sol_cluster3 = append(sol_cluster3, sum_cluster3)
-			sol_cluster4 = append(sol_cluster4, sum_cluster4)
-			sol_invlist = append(sol_invlist, sum_invlist)
-		}
-		for i := 0; i < len(sol_cluster4); i++ {
-			fmt.Println("|q|=", i+2, "\t", sol_cluster4[i], "\t", sol_cluster3[i],'\t', sol_invlist[i])
-		}
+
+		// sol_cluster3 = append(sol_cluster3, sum_cluster3)
+		// sol_cluster4 = append(sol_cluster4, sum_cluster4)
+		// sol_invlist = append(sol_invlist, sum_invlist)
+		// for i := 0; i < len(sol_cluster4); i++ {
+		// 	fmt.Println("|q|=", i+2, "\t", sol_cluster4[i], "\t", sol_cluster3[i],'\t', sol_invlist[i])
+		// }
 		fmt.Println("----------------------------")
 		for i:=0; i< len(n1_list);i++ {
 			fmt.Println(n1_list[i],"\t",nc_list[i],"\t",n1_list[i]/nc_list[i],nc_list[i]/n1_list[1])

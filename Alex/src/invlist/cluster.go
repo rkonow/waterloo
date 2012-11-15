@@ -114,8 +114,10 @@ func (t *TermCluster) Stats() {
 }
 
 func (t *TermCluster) GetDocsFromTerm(term string) int {
+	fmt.Println("received term = ", term)
 	total := 0
-	for j := range t.TermMap[term] {
+	fmt.Println("amount of clusters ->",len(t.TermMap[string(term)]))
+	for j := range t.TermMap[string(term)] {
 		total += len(t.TermMap[term][j].Terms[term].Content)
 	}
 	return total
