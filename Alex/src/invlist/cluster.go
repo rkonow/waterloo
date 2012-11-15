@@ -120,9 +120,9 @@ func (t *TermCluster) TopKQuery(terms []string, topn int, thresh int) (int, int)
 	for i := range terms {
 		// fmt.Printf("Term[%d] = %s \n", i, terms[i])
 		for j := range t.TermMap[string(terms[i])] {
-			if t.TermValues[string(terms[i])].max_freq < thresh {
-				continue
-			}
+			// if t.TermValues[string(terms[i])].max_freq < thresh {
+			// 	continue
+			// }
 			// fmt.Printf("Term -> %s  Has a pointer to cluster: %d \n in Documents: ", terms[i], t.TermMap[terms[i]][j].id)
 			nclusters++
 			clusters_size += len(t.TermMap[terms[i]][j].Terms[terms[i]].Content)
