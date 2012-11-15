@@ -115,18 +115,39 @@ func (t *TermCluster) Stats() {
 
 func (t *TermCluster) GetMinOcc(term1 string,term2 string) int {
 	total := 0
-	min := 9000000
-	c_term := t.TermMap[term1]
-	result := make([]int,0)
-	for j := range c_term {
-		if c_term[j].Terms[term2] != nil {
-			result = append(result,j)
+	c_term1 := t.TermMap[term1]
+	c_term2 := t.TermMap[term2]
+	result1 := make([]int,0)
+	result2 := make([]int,0)
+	for j := range c_term1 {
+		if c_term1[j].Terms[term2] != nil {
+			result1 = append(result1,j)
 		}
 	}
 
-	for j := range result {
-		occ1 := len(t.TermMap[term1][result[j]].Terms[term1].Content)
-		occ2 := len(t.TermMap[term2][result[j]].Terms[term2].Content)
+	for j := range c_term2 {
+		if c_term2[j].Terms[term1] != nil {
+			result2 = append(result2,j)
+		}
+	}
+
+	for j := range result1 {
+		min := 9000000
+		occ1 := len(t.TermMap[term1][result1[j]].Terms[term1].Content)
+		occ2 := len(t.TermMap[term1][result1[j]].Terms[term2].Content)
+		if min >= occ1 {
+			min = occ1
+		}
+		if min >= occ2 {
+			min = occ2
+		}
+		total += min
+	}
+
+	for j := range result1 {
+		min := 9000000
+		occ1 := len(t.TermMap[term2][result2[j]].Terms[term1].Content)
+		occ2 := len(t.TermMap[term2][result2[j]].Terms[term2].Content)
 		if min >= occ1 {
 			min = occ1
 		}
