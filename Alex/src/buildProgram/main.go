@@ -144,7 +144,7 @@ func main() {
 	// 	rep_per_cluster := float64(repet) / float64(num_clusters)
 	// 	fmt.Println(clusters[c], "\t", num_clusters, "\t", avg, "\t", repet, "\t", rep_per_cluster, "\t", max_cluster_size)
 	// }
-	t.GenerateQueries(2, 11, 1000, 20)
+	//t.GenerateQueries(2, 11, 1000, 20)
 
 	for i := 0; i < len(clusters); i++ {
 		f := invClustering.LoadClusters(clusters[i] + ".serial")
@@ -189,7 +189,7 @@ func main() {
 		//ratio_list := make([]float64,0)
 		nc_list := make([]float64,0)
 		n1_list := make([]float64,0)
-		threshold := 10;	
+		threshold := 50;	
 		for k := 0 ; k < 1000 ; k++ {
 			query := make([]string,0)
 			cont := 0
