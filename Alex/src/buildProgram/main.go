@@ -158,19 +158,21 @@ func main() {
 		//fmt.Println(f.Clusters)
 		for i := 0; i < len(f.Clusters); i++ {
 			if len(f.Clusters[i].Array) != 0 {
-				if len(f.Clusters[i].Array) > 128 {
-					clusts_aux := t.NewFromCluster(f.Clusters[i].Array, int(math.Sqrt(float64(len(f.Clusters[i].Array))))+1)
-					for j := 0; j < len(clusts_aux); j++ {
-						clusts = append(clusts, clusts_aux[j])
-					}
-				} else {
-					clusts_aux := t.NewFromCluster(f.Clusters[i].Array, 128)
-					for j := 0; j < len(clusts_aux); j++ {
-						clusts = append(clusts, clusts_aux[j])
-					}
-				}
+				clusts_aux := t.NewFromCluster(f.Clusters[i].Array, len(f.Clusters[i].Array))
 
+				// if len(f.Clusters[i].Array) > 128 {
+				// 	clusts_aux := t.NewFromCluster(f.Clusters[i].Array, int(math.Sqrt(float64(len(f.Clusters[i].Array))))+1)
+				// 	for j := 0; j < len(clusts_aux); j++ {
+				// 		clusts = append(clusts, clusts_aux[j])
+				// 	}
+				// } else {
+				// 	clusts_aux := t.NewFromCluster(f.Clusters[i].Array, 128)
+				for j := 0; j < len(clusts_aux); j++ {
+					clusts = append(clusts, clusts_aux[j])
+				}
 			}
+
+			//}
 		}
 		//fmt.Println(clusts)
 		termCluster := invClustering.GenerateTermClusters(clusts)
@@ -231,7 +233,9 @@ func main() {
 		// }
 		fmt.Println("----------------------------")
 		for i:=0; i< len(n1_list);i++ {
-			fmt.Println(n1_list[i],"\t",nc_list[i],"\t",n1_list[i]/nc_list[i],nc_list[i]/n1_list[1])
+			if nc_list[i] != 0 {
+				fmt.Println(n1_list[i],"\t",nc_list[i],"\t",n1_list[i]/nc_list[i],nc_list[i]/n1_list[1])
+			}
 		}
 		fmt.Println("----------------------------")
 	}

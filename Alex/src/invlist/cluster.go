@@ -177,12 +177,15 @@ func (t *TermCluster) TopKQuery(terms []string, topn int, thresh int) (int, int)
 func GenerateTermClusters(c []*Cluster) *TermCluster {
 	t := new(TermCluster)
 	t.TermMap = make(map[string][]*Cluster, 0)
+	total_terms := 0
 	for i := range c {
 		for j := range c[i].Terms {
-			// fmt.Printf("Cluster -> %d  Has term %s \n", i, j)
+			//fmt.Printf("Cluster -> %d  Has term %s \n", i, j)
+			total_terms++
 			t.add(j, c[i])
 		}
 	}
+	fmt.Println("total_terms ->",total_terms)
 	return t
 }
 
