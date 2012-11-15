@@ -223,10 +223,10 @@ func (h *InvList) NewFromCluster(documents []int, thd int) []*Cluster {
 			//doclen += h.DocPost[documents[i]].Terms[t]
 			//new_h.processTerm(t, documents[i])
 			//fmt.Println("index = ", index)
-			if h.DocPost[documents[i]].Terms[t] < 2 {
-				// add this document elsewhere
-				continue
-			}
+			// if h.DocPost[documents[i]].Terms[t] < 2 {
+			// 	// add this document elsewhere
+			// 	continue
+			// }
 			if count%thd == 0 {
 				c = append(c, new(Cluster))
 			}
