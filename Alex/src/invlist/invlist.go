@@ -75,6 +75,13 @@ func newInvlist() *InvList {
 	return i
 
 }
+
+func (h *InvList) GetDocsFromTerm(term string) int {
+	total := 0
+	total +=  len(h.Postings[term].Content)
+	return total
+}
+
 func (h *InvList) TopKQuery(queries []string, topn int) int {
 	pq := make(PriorityQueue, 0, len(h.TermMap))
 	nitem := 0

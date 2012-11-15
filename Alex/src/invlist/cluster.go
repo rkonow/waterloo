@@ -112,6 +112,14 @@ func (t *TermCluster) Stats() {
 	fmt.Println(avg / float64(len(t.TermMap)))
 	fmt.Println(len(t.TermMap))
 }
+
+func (t *TermCluster) GetDocsFromTerm(term string) int {
+	total := 0
+	for j := range t.TermMap[term] {
+		total += len(t.TermMap[term][j].Terms[term].Content)
+	}
+	return total
+}
 func (t *TermCluster) TopKQuery(terms []string, topn int, thresh int) (int, int) {
 	pq := make(PriorityQueue, 0, len(t.TermMap))
 	nitems := 0

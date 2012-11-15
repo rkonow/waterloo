@@ -4,7 +4,7 @@ import (
 	"fmt"
 //	"hashlist"
 	"invlist"
-//	"math"
+	"math"
 //	"math/rand"
 	"os"
 	"sort"
@@ -16,9 +16,9 @@ import (
 	//	"unsafe"
 	//	"reflect"
 	//"time"
-	//"io/ioutil"
+	"io/ioutil"
 	//"math"
-	//"strings"
+	"strings"
 
 //"math/rand"
 
@@ -109,41 +109,41 @@ func main() {
 	f = invClustering.CreateFlame()
 	f.SetMatrix(doc_vector, len(t.DocPost), len(t.TermMap), invClustering.JaccardPearson)
 	f.Write("clusters_jaccard_pearson2")
-/*
+
 	clusters := []string{"clusters_euclidean", "clusters_cosine", "clusters_cosinedist", "clusters_pearson", "clusters_pearsondist", "clusters_dot", "clusters_dotdist", "clusters_covariance", "clusters_covariancedist", "clusters_jaccard", "clusters_jaccard_pearson"}
-	for c := range clusters {
-		f := invClustering.LoadClusters(clusters[c] + ".serial")
-		f.DefineSupports(1, 1)
-		f.LocalApproximation(1, 1)
-		f.MakeClusters(0.9)
-		reps := make(map[int]int)
-		avg := float64(0)
-		nonzero := 0
-		num_clusters := 0
-		num_clusters = len(f.Clusters)
-		max_cluster_size := 0
-		for i := 0; i < len(f.Clusters); i++ {
-			if len(f.Clusters[i].Array) != 0 {
-				if max_cluster_size < len(f.Clusters[i].Array) {
-					max_cluster_size = len(f.Clusters[i].Array)
-				}
-				avg += float64(len(f.Clusters[i].Array))
-				nonzero++
-			}
-			for j := 0; j < len(f.Clusters[i].Array); j++ {
-				reps[f.Clusters[i].Array[j]]++
-			}
-		}
-		avg = avg / float64(nonzero)
-		repet := 0
-		for i := range reps {
-			if reps[i] > 1 {
-				repet++
-			}
-		}
-		rep_per_cluster := float64(repet) / float64(num_clusters)
-		fmt.Println(clusters[c], "\t", num_clusters, "\t", avg, "\t", repet, "\t", rep_per_cluster, "\t", max_cluster_size)
-	}
+	// for c := range clusters {
+	// 	f := invClustering.LoadClusters(clusters[c] + ".serial")
+	// 	f.DefineSupports(1, 1)
+	// 	f.LocalApproximation(1, 1)
+	// 	f.MakeClusters(0.9)
+	// 	reps := make(map[int]int)
+	// 	avg := float64(0)
+	// 	nonzero := 0
+	// 	num_clusters := 0
+	// 	num_clusters = len(f.Clusters)
+	// 	max_cluster_size := 0
+	// 	for i := 0; i < len(f.Clusters); i++ {
+	// 		if len(f.Clusters[i].Array) != 0 {
+	// 			if max_cluster_size < len(f.Clusters[i].Array) {
+	// 				max_cluster_size = len(f.Clusters[i].Array)
+	// 			}
+	// 			avg += float64(len(f.Clusters[i].Array))
+	// 			nonzero++
+	// 		}
+	// 		for j := 0; j < len(f.Clusters[i].Array); j++ {
+	// 			reps[f.Clusters[i].Array[j]]++
+	// 		}
+	// 	}
+	// 	avg = avg / float64(nonzero)
+	// 	repet := 0
+	// 	for i := range reps {
+	// 		if reps[i] > 1 {
+	// 			repet++
+	// 		}
+	// 	}
+	// 	rep_per_cluster := float64(repet) / float64(num_clusters)
+	// 	fmt.Println(clusters[c], "\t", num_clusters, "\t", avg, "\t", repet, "\t", rep_per_cluster, "\t", max_cluster_size)
+	// }
 	t.GenerateQueries(2, 11, 1000, 1)
 
 	for i := 0; i < len(clusters); i++ {
@@ -186,6 +186,9 @@ func main() {
 		sol_cluster3 := make([]int, 0)
 		sol_cluster4 := make([]int, 0)
 		sol_invlist := make([]int, 0)
+		//ratio_list := make([]float64,0)
+		nc_list := make([]float64,0)
+		n1_list := make([]float64,0)
 		for i := 2; i < 10; i++ {
 			s := fmt.Sprintf("queries.%d", i)
 			data, _ := ioutil.ReadFile(s)
@@ -201,15 +204,18 @@ func main() {
 			for dd := range d {
 				strings.Trim(d[dd], " ")
 				q := strings.Split(d[dd], " ")
-				if len(q) >= 2 {
+				if len(q) == 2 {
 					n2, s2 := termCluster.TopKQuery(q, 10, 1)
+					nC := math.Min(float64(termCluster.GetDocsFromTerm(q[0])),float64(termCluster.GetDocsFromTerm(q[0])))			
 					sum_cluster3 += n2
 					sum_cluster4 += s2
 					amount_clusters += n2;
 					amount_items += s2
-
 					size := t.TopKQuery(q, 10)
-					sum_invlist += size			
+					n1 := math.Min(float64(t.GetDocsFromTerm(q[0])),float64(t.GetDocsFromTerm(q[1])))			
+					n1_list = append(n1_list,n1)
+					nc_list = append(nc_list,nC)
+					sum_invlist += size				
 				}
 			}
 			sol_cluster3 = append(sol_cluster3, sum_cluster3)
@@ -220,6 +226,9 @@ func main() {
 			fmt.Println("|q|=", i+2, "\t", sol_cluster4[i], "\t", sol_cluster3[i],'\t', sol_invlist[i])
 		}
 		fmt.Println("----------------------------")
+		for i:=0; i< len(n1_list);i++ {
+			fmt.Println(n1_list[i],"\t",nc_list[i],"\t",n1_list[i]/nc_list[i],nc_list[i]/n1_list[1])
+		}
+		fmt.Println("----------------------------")
 	}
-	*/
 }
