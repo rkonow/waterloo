@@ -213,7 +213,7 @@ func main() {
 			
 //					fmt.Println("entered with q = ",q)
 			n2, s2 := termCluster.TopKQuery(query, 10, 1)
-			nC := math.Min(float64(termCluster.GetDocsFromTerm(query[0])),float64(termCluster.GetDocsFromTerm(query[1])))			
+			nC := float64(termCluster.GetMinOcc(query[0],query[1]))
 			// sum_cluster3 += n2
 			// sum_cluster4 += s2
 			amount_clusters += n2;
@@ -234,7 +234,7 @@ func main() {
 		fmt.Println("----------------------------")
 		for i:=0; i< len(n1_list);i++ {
 			if nc_list[i] != 0 {
-				fmt.Println(n1_list[i],"\t",nc_list[i],"\t",n1_list[i]/nc_list[i],nc_list[i]/n1_list[1])
+				fmt.Println(n1_list[i],",",nc_list[i])
 			}
 		}
 		fmt.Println("----------------------------")

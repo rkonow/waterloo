@@ -113,13 +113,29 @@ func (t *TermCluster) Stats() {
 	fmt.Println(len(t.TermMap))
 }
 
-func (t *TermCluster) GetDocsFromTerm(term string) int {
-	fmt.Println("received term = ", term)
+func (t *TermCluster) GetMinOcc(term1 string,term2 string) int {
 	total := 0
-	fmt.Println("amount of clusters ->",len(t.TermMap[string(term)]))
-	for j := range t.TermMap[string(term)] {
-		total += len(t.TermMap[term][j].Terms[term].Content)
+	min := 9000000
+	c_term := t.TermMap[term1]
+	result := make([]int,0)
+	for j := range c_term {
+		if c_term[j].Terms[term2] != nil {
+			result = append(result,j)
+		}
 	}
+
+	for j := range result {
+		occ1 := len(t.TermMap[term1][result[j]].Terms[term1].Content)
+		occ2 := len(t.TermMap[term2][result[j]].Terms[term2].Content)
+		if min >= occ1 {
+			min = occ1
+		}
+		if min >= occ2 {
+			min = occ2
+		}
+		total += min
+	}
+	
 	return total
 }
 func (t *TermCluster) TopKQuery(terms []string, topn int, thresh int) (int, int) {
