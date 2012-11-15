@@ -7,7 +7,7 @@ import (
 	"math"
 //	"math/rand"
 	"os"
-	"sort"
+//	"sort"
 //	"svs"
 //	"time"
 //	"treap"
@@ -47,7 +47,7 @@ func main() {
 
 	fmt.Println("N = ", len(t.DocPost))
 	fmt.Println("M = ", len(t.TermMap))
-	doc_vector := make([][]float64, len(t.DocPost))
+/*	doc_vector := make([][]float64, len(t.DocPost))
 	for i := range t.DocPost {
 		doc_vector[i] = make([]float64, len(t.TermMap))
 		for j := range t.DocPost[i].Terms {
@@ -109,8 +109,8 @@ func main() {
 	f = invClustering.CreateFlame()
 	f.SetMatrix(doc_vector, len(t.DocPost), len(t.TermMap), invClustering.JaccardPearson)
 	f.Write("clusters_jaccard_pearson2")
-
-	clusters := []string{"clusters_euclidean", "clusters_cosine", "clusters_cosinedist", "clusters_pearson", "clusters_pearsondist", "clusters_dot", "clusters_dotdist", "clusters_covariance", "clusters_covariancedist", "clusters_jaccard", "clusters_jaccard_pearson"}
+*/
+	clusters := []string{"clusters_euclidean2", "clusters_cosine2", "clusters_cosinedist2", "clusters_pearson2", "clusters_pearsondist2", "clusters_dot2", "clusters_dotdist2", "clusters_covariance2", "clusters_covariancedist2", "clusters_jaccard2", "clusters_jaccard_pearson2"}
 	// for c := range clusters {
 	// 	f := invClustering.LoadClusters(clusters[c] + ".serial")
 	// 	f.DefineSupports(1, 1)
@@ -144,7 +144,7 @@ func main() {
 	// 	rep_per_cluster := float64(repet) / float64(num_clusters)
 	// 	fmt.Println(clusters[c], "\t", num_clusters, "\t", avg, "\t", repet, "\t", rep_per_cluster, "\t", max_cluster_size)
 	// }
-	t.GenerateQueries(2, 11, 1000, 1)
+	t.GenerateQueries(2, 11, 1000, 20)
 
 	for i := 0; i < len(clusters); i++ {
 		f := invClustering.LoadClusters(clusters[i] + ".serial")
@@ -152,7 +152,7 @@ func main() {
 		fmt.Println(clusters[i])
 		f.DefineSupports(1, 1)
 		f.LocalApproximation(1, 1)
-		f.MakeClusters(0.5)
+		f.MakeClusters(0.9)
 		// //fmt.Println(f)
 		clusts := make([]*invClustering.Cluster, 0)
 		//fmt.Println(f.Clusters)
@@ -189,8 +189,9 @@ func main() {
 		//ratio_list := make([]float64,0)
 		nc_list := make([]float64,0)
 		n1_list := make([]float64,0)
-		for i := 2; i < 10; i++ {
+		for i := 2; i <= 2; i++ {
 			s := fmt.Sprintf("queries.%d", i)
+			fmt.Println("Executing with queries -> ",s)
 			data, _ := ioutil.ReadFile(s)
 			//fmt.Println(s)
 			d := strings.Split(string(data), "\n")
@@ -202,11 +203,13 @@ func main() {
 			sum_cluster4 := 0
 			sum_invlist := 0
 			for dd := range d {
-				strings.Trim(d[dd], " ")
+//				strings.Trim(d[dd], " ")
 				q := strings.Split(d[dd], " ")
-				if len(q) == 2 {
+			//	q = strings.Split(q[0]," ")
+				if len(q) >= 2 {
+//					fmt.Println("entered with q = ",q)
 					n2, s2 := termCluster.TopKQuery(q, 10, 1)
-					nC := math.Min(float64(termCluster.GetDocsFromTerm(q[0])),float64(termCluster.GetDocsFromTerm(q[0])))			
+					nC := math.Min(float64(termCluster.GetDocsFromTerm(q[0])),float64(termCluster.GetDocsFromTerm(q[1])))			
 					sum_cluster3 += n2
 					sum_cluster4 += s2
 					amount_clusters += n2;

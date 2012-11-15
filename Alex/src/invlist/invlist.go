@@ -78,7 +78,11 @@ func newInvlist() *InvList {
 
 func (h *InvList) GetDocsFromTerm(term string) int {
 	total := 0
+	if h.Postings[term] != nil {
 	total +=  len(h.Postings[term].Content)
+	} else {
+	total = 100000000
+	}
 	return total
 }
 
