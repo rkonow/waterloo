@@ -7,7 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
-//	"sort"
+	"sort"
 //	"svs"
 //	"time"
 //	"treap"
@@ -16,9 +16,9 @@ import (
 	//	"unsafe"
 	//	"reflect"
 	//"time"
-	//"io/ioutil"
+//	"io/ioutil"
 	//"math"
-	//"strings"
+//	"strings"
 
 //"math/rand"
 
@@ -41,13 +41,13 @@ func main() {
 		return
 	}
 
-	//t := invClustering.LoadFiles(args[1])
-	//t.Write("test_large.invlist")
-	t := invClustering.Load("test_large.invlist.serial")
+	t := invClustering.LoadFiles(args[1])
+	t.Write("test_large2.invlist")
+//	t := invClustering.Load("test_large.invlist.serial")
 
 	fmt.Println("N = ", len(t.DocPost))
 	fmt.Println("M = ", len(t.TermMap))
-/*	doc_vector := make([][]float64, len(t.DocPost))
+	doc_vector := make([][]float64, len(t.DocPost))
 	for i := range t.DocPost {
 		doc_vector[i] = make([]float64, len(t.TermMap))
 		for j := range t.DocPost[i].Terms {
@@ -109,7 +109,7 @@ func main() {
 	f = invClustering.CreateFlame()
 	f.SetMatrix(doc_vector, len(t.DocPost), len(t.TermMap), invClustering.JaccardPearson)
 	f.Write("clusters_jaccard_pearson2")
-*/
+
 	clusters := []string{"clusters_euclidean2", "clusters_cosine2", "clusters_cosinedist2", "clusters_pearson2", "clusters_pearsondist2", "clusters_dot2", "clusters_dotdist2", "clusters_covariance2", "clusters_covariancedist2", "clusters_jaccard2", "clusters_jaccard_pearson2"}
 	// for c := range clusters {
 	// 	f := invClustering.LoadClusters(clusters[c] + ".serial")
@@ -191,8 +191,8 @@ func main() {
 		//ratio_list := make([]float64,0)
 		nc_list := make([]float64,0)
 		n1_list := make([]float64,0)
-		threshold := 50;	
-		for k := 0 ; k < 1000 ; k++ {
+		threshold := 100;	
+		for k := 0 ; k < 10000 ; k++ {
 			query := make([]string,0)
 			cont := 0
 			for cont < 2 { 
@@ -233,9 +233,7 @@ func main() {
 		// }
 		fmt.Println("----------------------------")
 		for i:=0; i< len(n1_list);i++ {
-			if nc_list[i] != 0 {
-				fmt.Println(n1_list[i],",",nc_list[i])
-			}
+			fmt.Println(n1_list[i],"\t",nc_list[i],"\t",n1_list[i]/nc_list[i],nc_list[i]/n1_list[1])
 		}
 		fmt.Println("----------------------------")
 	}
